@@ -1,3 +1,11 @@
+/**
+ This is a Java based application mad by Anass AIT BEN EL ARBI 
+ Transformed from a console based application developped using Python to a Java with GUI
+  **/
+
+
+
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.EventQueue;
@@ -30,7 +38,7 @@ public class Home {
 
 	private JFrame frmProgrammationLinaire;
 	private int x;
-	private int y;
+	
 	private ArrayList<ArrayList> list;
 	private JTextField var_count;
 	private JTextField eq_count;
@@ -48,7 +56,7 @@ public class Home {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Home window = new Home(5,4);
+					Home window = new Home(2,2);
 					window.frmProgrammationLinaire.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -82,7 +90,6 @@ public class Home {
 		
 		frmProgrammationLinaire.getContentPane().setLayout(null);
 		this.x= var;
-		this.y=eqt;
 		JPanel panel = new JPanel();
 		panel.setBounds(12, 83, 1109, 453);
 		frmProgrammationLinaire.getContentPane().add(panel);
@@ -117,6 +124,17 @@ public class Home {
 		JButton solve = new JButton("R\u00E9soudre le PL");
 		solve.setBounds(959, 634, 162, 47);
 		frmProgrammationLinaire.getContentPane().add(solve);
+		solve.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(null, "La résolution se fait uniquement pour le probleme\n de maximisation et pour toutes les contraitnes <=", "Resultat !", JOptionPane.INFORMATION_MESSAGE);
+				fillTheMatrix();
+				solve_now();
+				
+			}
+			
+		});
 		
 		JButton optimal = new JButton("V\u00E9rifier l'optimalit\u00E9");
 		optimal.setBounds(12, 634, 162, 47);
@@ -309,7 +327,37 @@ public class Home {
 		example.setBounds(1024, 15, 97, 55);
 		frmProgrammationLinaire.getContentPane().add(example);
 		frmProgrammationLinaire.setVisible(true);
-		//fill_matrix(var, eqt);
+		//fill_matrix2(var, eqt);
+	}
+
+	protected void solve_now() {
+		
+		
+		
+		double[] c = new double[this.max_min.size()];
+		int index = 0;
+		for (float f : this.max_min) {
+			c[index]= (double) f;
+			index++;
+		}
+		double[] b = new double[this.inf_sup.size()];
+		index = 0;
+		for (float f : this.inf_sup) {
+			b[index]= (double) f;
+			index++;
+		}
+		double[][] a = new double[this.matrix.size()][this.matrix.get(0).size()];
+		index = 0;
+		
+		for (ArrayList<Float> f : this.matrix) {
+			for (int e = 0; e <f.size();e++) {
+				a[index][e] = f.get(e);
+			}
+			index ++;
+		}
+		String res= LinearProgramming.test(a,b,c);
+		
+		JOptionPane.showMessageDialog(null, res, "Resultat !", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	protected void verify_optimum(float[] testScore) {
@@ -317,11 +365,12 @@ public class Home {
 		ArrayList<Integer> yi_nulles = new ArrayList<Integer>();
 		ArrayList<Integer> saturee = new ArrayList<Integer>();
 		for (int i = 0; i<this.matrix.size();i++) {
+			System.out.print("variable de test = "+testScore[i]);
 			float sum = 0;
 			for (int j = 0; j<this.matrix.get(0).size();j++) {
 				sum = sum + ((float)this.matrix.get(i).get(j))*(testScore[j]);
 			}
-			System.out.println("l'équations a une sol = "+sum);
+			System.out.println("  l'équations a une sol = "+sum);
 			if (Math.abs(sum - this.inf_sup.get(i))<0.001) {
 				
 			}else {
@@ -371,6 +420,8 @@ public class Home {
 				b[e]=((double) this.max_min.get(i));
 				e++;
 		}
+		System.out.println(comment);
+		//show(solve_this);
 		double[] sol = solve_problem(solve_this,b);
 		//show(solve_this);
 		//System.out.println(comment);
@@ -393,30 +444,100 @@ public class Home {
 		}
 		boolean broke = false;
 		for (int i = 0; i<matrix_transpose.size();i++) {
+			System.out.print("variable de test = "+sol_totale[i]);
 			float sum = 0;
 			for (int j = 0; j<matrix_transpose.get(0).size();j++) {
-				sum = sum + ((float)matrix_transpose.get(i).get(j))*(testScore[j]);
+				sum = (float) (sum + ((float)matrix_transpose.get(i).get(j))*(sol_totale[j]));
 			}
-			//System.out.println("l'équations a une sol = "+sum);
-			if (Math.abs(sum - this.max_min.get(i))<0.001) {
-				
-			}else {
-				if (!broke) {
-					comment = comment+"Une des équations ne vérifie pas la solution des Yi qui est (";
-					for (int g = 0; g <sol_totale.length;g++) {
-						comment=comment+sol_totale[g]+" ";
-					} 
-					comment= comment + ")";
-					broke = true;
+			
+			int sel = ((JComboBox)(this.list.get(testScore.length+1).get(i))).getSelectedIndex();
+			switch (sel) {
+			case 0:
+				System.out.print("compare to "+this.max_min.get(i));
+				if (Math.abs(sum - this.max_min.get(i))<0.001) {
+					
+				}else {
+					if (!broke) {
+						comment = comment+"Une des équations ne vérifie pas la solution des Yi qui est (";
+						for (int g = 0; g <sol_totale.length;g++) {
+							comment=comment+sol_totale[g]+" ";
+						} 
+						comment= comment + ")";
+						broke = true;
+					}
+					
 				}
-				
+				break;
+			case 1:
+				System.out.print("compare to "+this.max_min.get(i));
+				if (sum <= this.max_min.get(i)) {
+					
+				}else {
+					if (!broke) {
+						comment = comment+"Une des équations ne vérifie pas la solution des Yi qui est (";
+						for (int g = 0; g <sol_totale.length;g++) {
+							comment=comment+sol_totale[g]+" ";
+						} 
+						comment= comment + ")";
+						broke = true;
+					}
+					
+				}
+				break;
+			case 2:
+				System.out.print("compare to "+this.max_min.get(i));
+				if (sum >= this.max_min.get(i)) {
+					
+				}else {
+					if (!broke) {
+						comment = comment+"Une des équations ne vérifie pas la solution des Yi qui est (";
+						for (int g = 0; g <sol_totale.length;g++) {
+							comment=comment+sol_totale[g]+" ";
+						} 
+						comment= comment + ")";
+						broke = true;
+					}
+					
+				}
+				break;
 			}
+			System.out.println("  l'équations a une sol = "+sum);
 		}
 		if (broke) {
 			JOptionPane.showMessageDialog(null, comment, "Resultat !", JOptionPane.INFORMATION_MESSAGE);
+		}else {
+			
+		
+		float minW = calculateZ (inf_sup, sol_totale);
+		float maxZ = calculateZ (max_min, testScore);
+		
+		if (Math.abs(minW-maxZ)<0.001) {
+			JOptionPane.showMessageDialog(null, comment+"\nSolution est optimale\n Max Z = "+maxZ+"\nMin W = "+minW, "Resultat !", JOptionPane.INFORMATION_MESSAGE);
+		}else {
+			JOptionPane.showMessageDialog(null,  comment+"\nSolution n'est pas optimale\n Max Z = "+maxZ+"\nMin W = "+minW, "Resultat !", JOptionPane.INFORMATION_MESSAGE);
 		}
 		
+		}
+	}
+
+	private float calculateZ(ArrayList<Float> max_min2, float[] testScore) {
+		float res = 0;	
 		
+		for (int i = 0; i<max_min2.size();i++){
+			res = (float) (res + max_min2.get(i)*testScore[i]);			
+		}
+		
+		return res;
+	}
+
+	private float calculateZ(ArrayList<Float> inf_sup2, double[] sol_totale) {
+		float res = 0;
+		
+		for (int i = 0; i<inf_sup2.size();i++){
+			res = (float) (res + inf_sup2.get(i)*sol_totale[i]);			
+		}
+		
+		return res;
 	}
 
 	private void fill_matrix(int var, int eqt) {
@@ -458,12 +579,81 @@ public class Home {
 		
 		
 	}
+	@SuppressWarnings("unchecked")
+	private void fill_matrix2(int var, int eqt) {
+		ArrayList<Object> obj = this.list.get(0);
+		
+			((JTextField)(obj.get(1))).setText(""+4);
+			((JTextField)(obj.get(2))).setText(""+5);
+			((JTextField)(obj.get(3))).setText(""+1);
+			((JTextField)(obj.get(4))).setText("3");
+			((JTextField)(obj.get(5))).setText("-5");
+			((JTextField)(obj.get(6))).setText(""+8);
+			obj = this.list.get(1);
+			((JTextField)(obj.get(0))).setText(""+1);
+			((JTextField)(obj.get(1))).setText("0");
+			((JTextField)(obj.get(2))).setText("-4");
+			((JTextField)(obj.get(3))).setText(""+3);
+			((JTextField)(obj.get(4))).setText(""+1);
+			((JTextField)(obj.get(5))).setText(""+1);
+			((JTextField)(obj.get(7))).setText(""+1);
+			obj = this.list.get(2);
+			((JTextField)(obj.get(0))).setText(""+5);
+			((JTextField)(obj.get(1))).setText(""+3);
+			((JTextField)(obj.get(2))).setText(""+1);
+			((JTextField)(obj.get(3))).setText("0");
+			((JTextField)(obj.get(4))).setText("-5");
+			((JTextField)(obj.get(5))).setText(""+3);
+			((JTextField)(obj.get(7))).setText(""+4);
+			
+			 obj = this.list.get(3);
+			((JTextField)(obj.get(0))).setText(""+4);
+			((JTextField)(obj.get(1))).setText("5");
+			((JTextField)(obj.get(2))).setText("-3");
+			((JTextField)(obj.get(3))).setText("3");
+			((JTextField)(obj.get(4))).setText("'-4");
+			((JTextField)(obj.get(5))).setText("1");
+			((JTextField)(obj.get(7))).setText(""+4);
+			 obj = this.list.get(4);
+				((JTextField)(obj.get(0))).setText("0");
+				((JTextField)(obj.get(1))).setText("-1");
+				((JTextField)(obj.get(2))).setText("0");
+				((JTextField)(obj.get(3))).setText("2");
+				((JTextField)(obj.get(4))).setText("1");
+				((JTextField)(obj.get(5))).setText("-5");
+				((JTextField)(obj.get(7))).setText(""+5);
+				 obj = this.list.get(5);
+					((JTextField)(obj.get(0))).setText("-2");
+					((JTextField)(obj.get(1))).setText("1");
+					((JTextField)(obj.get(2))).setText("1");
+					((JTextField)(obj.get(3))).setText("1");
+					((JTextField)(obj.get(4))).setText("2");
+					((JTextField)(obj.get(5))).setText("2");
+					((JTextField)(obj.get(7))).setText(""+7);
+					 obj = this.list.get(6);
+						((JTextField)(obj.get(0))).setText(""+2);
+						((JTextField)(obj.get(1))).setText("-3");
+						((JTextField)(obj.get(2))).setText("2");
+						((JTextField)(obj.get(3))).setText("-1");
+						((JTextField)(obj.get(4))).setText("4");
+						((JTextField)(obj.get(5))).setText(""+5);
+						((JTextField)(obj.get(7))).setText(""+5);
+		
+		
+	}
 
 	private double[] solve_problem(double[][] solve_this, double[] b) {
-		RealMatrix coefficients =new Array2DRowRealMatrix(solve_this,false);
-		DecompositionSolver solver = new LUDecomposition(coefficients).getSolver();
-		RealVector constants = new ArrayRealVector(b, false);
-		RealVector solution = solver.solve(constants);
+		RealVector solution=null;
+		try {
+			RealMatrix coefficients =new Array2DRowRealMatrix(solve_this,false);
+			DecompositionSolver solver = new LUDecomposition(coefficients).getSolver();
+			RealVector constants = new ArrayRealVector(b, false);
+			solution = solver.solve(constants);
+		}catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Impossible de résoudre le problème\n nombre de variable > nombre d'équations", "ERREUR !", JOptionPane.ERROR_MESSAGE);
+			System.exit(0);
+		}
+		
 		double[]  sol = new double[b.length];
 		for (int xx = 0; xx<solution.getDimension();xx++) {
 			sol[xx]= solution.getEntry(xx);
@@ -647,9 +837,9 @@ public class Home {
 		
 		
 	}
-	private void show(ArrayList<ArrayList> matrix2) {
-		for (ArrayList <Float> lst : matrix2) {
-			for (float f : lst) {
+	private void show(double[][] solve_this) {
+		for (double[] lst : solve_this) {
+			for (double f : lst) {
 				
 				System.out.print(f+ " ");
 			}
@@ -887,8 +1077,6 @@ public class Home {
 	}
 
 	protected void sety(int parseInt) {
-		this.y=parseInt;
-		
 		var_count.setBorder((new JTextField()).getBorder());
 	}
 
